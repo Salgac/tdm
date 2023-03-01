@@ -114,12 +114,11 @@ ARGV.each do |file|
   _, vehicle_num, date = file_name.split("_")
 
   # open file with IS data
-  is_data = []
+  is_data = {}
   begin
+    print "Parsing file \"#{vehicle_num}.csv\"…\r"
     CSV.foreach("data/is/#{vehicle_num}.csv", "r", col_sep: ";", headers: true, header_converters: :symbol, encoding: "iso-8859-1:utf-8") do |row|
-      if row[:datum] == date
-        is_data << row.to_h
-      end
+      is_data["#{row[:datum]}-#{row[:cas]}"] = row.to_h
     end
   rescue
     puts "No IS file for vehicle #{vehicle_num} found. Terminating…"
@@ -152,7 +151,7 @@ ARGV.each do |file|
       time = Time.parse(timestamp).strftime("%H:%M:%S")
 
       # select data in IS
-      is_row = is_data.find { |row| row[:cas] == time }
+      is_row = is_data["#{date}-#{time}"]
       if !is_row.nil?
         last_is_row = is_row
       end
