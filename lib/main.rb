@@ -129,9 +129,18 @@ ARGV.each do |file|
   # open result file
   print "Parsing file \"#{File.basename(file)}\"…"
   CSV.open("#{file_name}.csv", "w", col_sep: ";", write_headers: true, headers: HEADS + IS_HEADS) do |csv|
-    last_is_row = nil
-
+    # read data file and reverse the data
+    file_data = []
     CSV.foreach(file, col_sep: "\t", headers: true, header_converters: :symbol) do |row|
+      if !row[:time].nil?
+        file_data << row.to_h
+      end
+    end
+    file_data.reverse!
+
+    # match file data to is data
+    last_is_row = nil
+    file_data.each do |row|
       # extract data
       timestamp = row[:time]
       date = row[:date]
