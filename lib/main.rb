@@ -95,6 +95,11 @@ IS_HEADS = [
   "IS_Typ_spravy"
 ]
 
+is_data = {}
+is_data_num = ""
+t_start = Time.new
+file_num = 0
+
 # no selected file edgecase
 if ARGV.length == 0
   puts "No file in ARGV. Please specify a file path."
@@ -108,15 +113,19 @@ ARGV.each do |file|
     puts "#{File.basename(file)} must be a \".tgf\" export file."
     next
   end
+  print "[#{Time.new.strftime("%Y-%m-%d %H:%M:%S")}] Parsing file \"#{File.basename(file)}\"… "
 
   # prepare file data
   file_name = file.delete_suffix(".tgf.txt")
   _, vehicle_num, date = file_name.split("_")
 
   # open file with IS data
-  is_data = {}
+  if vehicle_num != is_data_num
+    is_data = {}
+    is_data_num = vehicle_num
+  end
+
   begin
-    print "Parsing file \"#{vehicle_num}.csv\"…\r"
     CSV.foreach("data/is/#{vehicle_num}.csv", "r", col_sep: ";", headers: true, header_converters: :symbol, encoding: "iso-8859-1:utf-8") do |row|
       is_data["#{row[:datum]}-#{row[:cas]}"] = row.to_h
     end
@@ -126,11 +135,10 @@ ARGV.each do |file|
   end
 
   # open result file
-  print "Parsing file \"#{File.basename(file)}\"…"
-  CSV.open("#{file_name}.csv", "w", col_sep: ";", write_headers: true, headers: HEADS + IS_HEADS) do |csv|
+  CSV.open("#{file_name}.csv", "w", col_sep: ";", write_headers: true, headers: HEADS + IS_HEADS, encoding: "iso-8859-1:utf-8") do |csv|
     # read data file and reverse the data
     file_data = []
-    CSV.foreach(file, col_sep: "\t", headers: true, header_converters: :symbol) do |row|
+    CSV.foreach(file, col_sep: "\t", headers: true, header_converters: :symbol, encoding: "iso-8859-1:utf-8") do |row|
       if !row[:time].nil?
         file_data << row.to_h
       end
@@ -159,6 +167,8 @@ ARGV.each do |file|
       csv << row.to_h.except(*HEADS_TO_DEL).values + last_is_row.to_h.values
     end
   end
+  file_num += 1
+  puts "  Done."
 end
 
-puts "\nFinished"
+puts "\nFinished #{file_num} files in #{Time.new - t_start}."
