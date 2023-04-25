@@ -153,7 +153,6 @@ ARGV.each do |file|
     file_data.reverse!
 
     # match file data to is data
-    last_is_row = nil
     file_data.each do |row|
       # extract data
       timestamp = row[:time]
@@ -167,11 +166,8 @@ ARGV.each do |file|
 
       # select data in IS
       is_row = is_data["#{date}-#{time}"]
-      if !is_row.nil?
-        last_is_row = is_row
-      end
 
-      csv << row.to_h.except(*HEADS_TO_DEL).values + last_is_row.to_h.values
+      csv << row.to_h.except(*HEADS_TO_DEL).values + is_row.to_h.values
     end
   end
   file_num += 1
