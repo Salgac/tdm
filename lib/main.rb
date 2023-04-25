@@ -113,11 +113,18 @@ ARGV.each do |file|
     puts "#{File.basename(file)} must be a \".tgf\" export file."
     next
   end
+
   print "[#{Time.new.strftime("%Y-%m-%d %H:%M:%S")}] Parsing file \"#{File.basename(file)}\"… "
 
   # prepare file data
   file_name = file.delete_suffix(".tgf.txt")
-  _, vehicle_num, date = file_name.split("_")
+  _, vehicle_num = file_name.split("_")
+
+  # check for existing .csv file
+  if File.file?("#{file_name}.csv")
+    puts "\tCsv already exists, skipping."
+    next
+  end
 
   # open file with IS data
   if vehicle_num != is_data_num
@@ -130,7 +137,7 @@ ARGV.each do |file|
       is_data["#{row[:datum]}-#{row[:cas]}"] = row.to_h
     end
   rescue
-    puts "No IS file for vehicle #{vehicle_num} found. Terminating…"
+    puts "\tIS file #{vehicle_num} not found, skipping."
     next
   end
 
@@ -168,7 +175,7 @@ ARGV.each do |file|
     end
   end
   file_num += 1
-  puts "  Done."
+  puts "\tDone."
 end
 
-puts "\nFinished #{file_num} files in #{Time.new - t_start}."
+puts "\n[#{Time.new.strftime("%Y-%m-%d %H:%M:%S")}] Finished #{file_num} files in #{Time.new - t_start}."
